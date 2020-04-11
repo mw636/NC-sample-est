@@ -1,0 +1,110 @@
+README FILE
+
+This program calculates, via nested Monte Carlo, an estimate of the 
+size of the neutral set (network) of a given RNA secondary structure. 
+It needs the following input given as command line options to run 
+(for each item we give the default value used if the corresponding 
+option is not set on the command line). Examples of a command line 
+will be given below under EXAMPLES:
+
+(i) The RNA secondary structure in dot parenthesis notation is set with 
+the -s option (Its length must not exceed the constant NBASE_MAX which 
+is currently set to 1000):
+(((((((.(((((...))))).......(((((......)))))...))))))) 
+
+(ii) The number of thermalization Monte Carlo sweeps to be 
+applied before the start of measurements is set with the -d option:
+2000
+
+(iii) The number of Monte Carlo sweeps per measurement is set with
+the -n option:
+2000
+
+(iv) The total number of measurements is set with the -m option:
+10
+
+(v) The seed for the random number generator is set with the -i option:
+1
+
+(vi) The temperature at which the RNA folding is performed is set with 
+the -t option:
+37.0
+
+Thus in this example, a total of 2000*10 = 20000 Monte Carlo sweeps in which
+the neutral set size is estimated are performed.
+
+The compilation of the program needs a functional installation of the
+Vienna RNA package that can be downloaded from:
+
+http://www.tbi.univie.ac.at/~ivo/RNA/
+
+The compilation is then done using the following command line:
+
+gcc -I${Includes_ViennaRNA} get_size_NN.c -o \
+    get_size_NN -L${Libraries_ViennaRNA} -lm -lRNA
+
+where Includes_ViennaRNA and Libraries_ViennaRNA are the directories
+where the include and the library files of the Vienna Package are
+installed, respectively. Note that it doesn't make much sense to play
+around with the compiler switches to speed up the code as the execution
+time is essentially dominated by the RNAfold routine of the Vienna package.
+
+EXAMPLES
+
+The example with the default settings can be run using
+
+./get_size_NN > out.hammerhead &
+
+The result of a sample run is given in the file out.hammerhead_sample and 
+should correspond to the output you get in your out.hammerhead file.
+
+The command line without setting any options corresponds to 
+
+ ./get_size_NN -s "(((((((.(((((...))))).......(((((......)))))...)))))))" -d 2000 -i 1 -m 10 -n 2000 -t 37.0
+
+(The order in which the options are given is not important). 
+
+In the following example the neutral set of a secondary structure with a 100 bases is estimated at 37°C 
+using 50 measurement bins:
+  
+./get_size_NN -s "...((..((.(((((((((..(((.(((........))))))....(((((......)))))..........))))))............)))))..))." -m 50
+
+
+The output consists some lines echoing the input data and then of L
+lines (where L is the number of nucleotides or bases in the RNA sequence)
+where the L initial sequences obtained from inverse_fold are given. 
+Then a line indicating the number of pairs of parentheses is given and 
+finally the Nmeasurement lines with the results for the neutral set 
+size are given (in the above example there are 50 measurement bins).
+
+NOTE: In the unlikely case that you want to adapt the code for
+      longer secondary structures (i.e. L > 1000) you need to
+      adjust the line:
+
+      #define NBASE_MAX 1000
+
+      to the maximal length you want to use before compiling the code.
+
+In the code there are the following global constants that can be modified:
+
+NBASE_MAX  is the maximal number of the bases in the sequence and
+           corresponds to the maximal length of the secondary structure in 
+           dot-parenthesis representation that can be handled by the code. 
+MU_NSWEEP  is the number of mutation trials per shell that is performed
+           during one exchange Monte Carlo sweep. (We recommend using 1).
+COMPATIBLE defines whether or not we restrict the Monte Carlo procedure
+           to the compatible set of the given secondary structure. Using 
+           COMPATIBLE TRUE produces more accurate results as the 
+           configuration space of the compatible set is noticeably
+           smaller than the space of all the 4^L sequences and therefore 
+           the sampling is better. (We recommend to use TRUE).
+WITH_RMU   defines whether or not we calculate R_mu, the neutral set's mutational 
+           robustness (average over the neutral set of R_mu(G) where R_mu(G) 
+           is the mutational robustness of the genotype G). R_mu(G) is the 
+           fraction of the 3*L point mutants of the sequence G 
+           that lie on the same neutral set, i.e., that fold into the
+           same secondary structure as G itself. The calculation of R_mu
+           is computationally rather expensive and if only a determination 
+           of the size of the neutral sets is wanted the calculation 
+           of R_mu should be switched off, by setting WITH_RMU to FALSE. 
+
